@@ -64,4 +64,135 @@ readonly class Parser
             ),
         };
     }
+
+    /**
+     * @param string $interval
+     * @param ?string $relativeDateFormat
+     * @param ?DateRoundingMode $roundingMode
+     * @param ?DateRoundingUnit $roundingUnit
+     * @return ParsedDateInterval|false Returns `false` if `$interval` doesn't contains at least one date interval string
+     */
+    public function parseDateInterval(
+        string $interval,
+        ?string $relativeDateFormat,
+        ?DateRoundingMode $roundingMode = null,
+        ?DateRoundingUnit $roundingUnit = null,
+    ): ParsedDateInterval|false {
+        if (preg_match_all(
+                '/(?<intervals>(?:[+-] ?)?[0-9]+ ?(?<types>year|month|week|day|hour|min(?:ute)?)s?)/',
+                $interval,
+                $timeframes,
+            ) === 0) {
+            return false;
+        }
+
+        // Prevent intervals such as "2 days -1 day"
+        $timeframes['types'] = str_replace('minute', 'min', $timeframes['types']);
+
+        if (max(array_count_values($timeframes['types'])) > 1) {
+            throw new ParseDateIntervalException($interval);
+        }
+
+        $timeframes['intervals'] = str_replace(['- ', '+ '], ['-', '+'], $timeframes['intervals']);
+
+        $relativeTo = null;
+        $relativeToRoundingMode = DateRoundingMode::None;
+
+        foreach ($this->getSupportedIntervalPatterns() as $pattern => $mapper) {
+            if (!preg_match($pattern, $interval, $matches)) {
+                continue;
+            }
+
+            if (isset($matches['relativeTo'])) {
+                $roundingMode = $roundingMode ?? DateRoundingMode::ToStart;
+
+                $relativeTo = match ($matches['relativeTo']) {
+                    'now', 'today' => null,
+                    default => $this->parseIntervalDate(
+                        $matches['relativeTo'],
+                        $relativeDateFormat,
+                        $interval,
+                        $roundingMode,
+                        $roundingUnit,
+                    )
+                };
+
+                $relativeToRoundingMode = match($matches['relativeTo']) {
+                    'today' => $roundingMode,
+                    default => DateRoundingMode::None,
+                };
+            }
+
+            $intervals = array_filter(
+                array_map(
+                    static fn(string $timeframe) => DateInterval::createFromDateString($timeframe),
+                    array_map($mapper, $timeframes['intervals'])
+                )
+            );
+
+            if (count($intervals) === count($timeframes['intervals'])) {
+                return new ParsedDateInterval($interval, $intervals, $relativeTo, $relativeToRoundingMode);
+            }
+        }
+
+        throw new ParseDateIntervalException($interval);
+    }
+
+    /**
+     * @return array
+     */
+    public function getSupportedIntervalPatterns(): array
+    {
+        return [
+            /**
+             * Match a relative date that must be in the past, e.g. "2 days ago", "1 month before 25/12/2026" etc.
+             *
+             * @lang RegExp
+             */
+            '/^(?<timeframe>(?<interval>[0-9]+ ?(?:year|month|week|day|hour|min(?:ute)?)s?)(?: (?&interval))*) (?:ago|before (?<relativeTo>.+))$/' =>
+                static fn(string $timeframe): string => '-' . $timeframe,
+            /**
+             * Match a relative date that must be in the future, e.g. "2 days", "1 month from 25/12/2026" etc.
+             *
+             * @lang RegExp
+             */
+            '/^(?<timeframe>(?<interval>[0-9]+ ?(?:year|month|week|day|hour|min(?:ute)?)s?)(?: (?&interval))*) (?:from|after) (?<relativeTo>.+)$/' =>
+                static fn(string $timeframe): string => $timeframe,
+            /**
+             * Match a relative date that could be in the past or the future, e.g. "+2 days", "-1 week" etc.
+             *
+             * @lang RegExp
+             */
+            '/^(?<timeframe>(?<interval>(?:[+-] ?)?[0-9]+ ?(?:year|month|week|day|hour|min(?:ute)?)s?)(?: (?&interval))*)$/' =>
+                static fn(string $timeframe): string => $timeframe,
+        ];
+    }
+
+    /**
+     * @param string $date
+     * @param string|null $dateFormat
+     * @param string $fromInterval
+     * @param DateRoundingMode|null $roundingMode
+     * @param DateRoundingUnit|null $roundingUnit
+     * @return DateTimeImmutable
+     */
+    private function parseIntervalDate(
+        string $date,
+        ?string $dateFormat,
+        string $fromInterval,
+        ?DateRoundingMode $roundingMode,
+        ?DateRoundingUnit $roundingUnit
+    ): DateTimeImmutable {
+        if ($dateFormat === null) {
+            throw new ParseDateIntervalException($fromInterval);
+        }
+
+        $roundingUnit = $roundingUnit ?? DateRoundingUnit::fromDateFormat($dateFormat);
+
+        try {
+            return $this->parseDate($date, $dateFormat, $roundingMode, $roundingUnit);
+        } catch (ParseDateException $e) {
+            throw new ParseDateIntervalException($fromInterval, $e);
+        }
+    }
 }
