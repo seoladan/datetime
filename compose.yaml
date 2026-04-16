@@ -1,0 +1,14 @@
+services:
+  php:
+    build:
+      dockerfile: docker/Dockerfile
+    user: ${UID:-1000}:${GID:-1000}
+    ports:
+      - "9003:9003"
+    volumes:
+      - ./:/var/www/html/
+  composer:
+    image: composer/composer:latest
+    user: ${UID:-1000}:${GID:-1000}
+    volumes:
+      - ./:/app

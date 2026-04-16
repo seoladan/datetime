@@ -1,0 +1,154 @@
+# Auto detect text files and perform LF normalization
+*                 text=auto
+
+# Source code
+*.cjs             text
+*.coffee          text
+*.css             text diff=css
+*.htm             text diff=html
+*.html            text diff=html
+*.inc             text
+*.ini             text
+*.js              text
+*.json            text
+*.jsx             text
+*.less            text
+*.ls              text
+*.map             text -diff
+*.mjs             text
+*.php             text diff=php
+*.pl              text
+*.ps1             text eol=crlf
+*.py              text diff=python
+*.rb              text diff=ruby
+*.sass            text
+*.scm             text
+*.scss            text diff=css
+*.sh              text eol=lf
+*.sql             text
+*.styl            text
+*.tag             text
+*.ts              text
+*.tsx             text
+*.xhtml           text diff=html
+*.xml             text
+.husky/*          text eol=lf
+
+# Docker
+Dockerfile        text
+
+# Documentation
+*.ipynb           text eol=lf
+*.markdown        text diff=markdown
+*.md              text diff=markdown
+*.mdown           text diff=markdown
+*.mdtext          text
+*.mdtxt           text
+*.mdwn            text diff=markdown
+*.mkd             text diff=markdown
+*.mkdn            text diff=markdown
+*.txt             text
+*COPYRIGHT*       text
+*README*          text
+AUTHORS           text
+CHANGELOG         text
+CHANGES           text
+CONTRIBUTING      text
+COPYING           text
+copyright         text
+INSTALL           text
+license           text
+LICENSE           text
+NEWS              text
+readme            text
+TODO              text
+
+# Templates
+*.dot             text
+*.ejs             text
+*.erb             text
+*.haml            text
+*.handlebars      text
+*.hbs             text
+*.hbt             text
+*.jade            text
+*.latte           text
+*.mustache        text
+*.njk             text
+*.phpt            text eol=lf diff=php
+*.phtml           text
+*.phtml           text eol=lf diff=html
+*.svelte          text
+*.tmpl            text
+*.tpl             text
+*.twig            text
+*.twig            text eol=lf
+*.vue             text
+
+# Configs
+*.cnf             text
+*.conf            text
+*.config          text
+*.env             text
+*.lock            text -diff
+*.toml            text
+*.yaml            text
+*.yml             text
+.editorconfig     text
+.gitattributes    text
+.gitignore        text
+.gitconfig        text
+.htaccess         text
+.prettierrc       text
+browserslist      text
+Makefile          text
+makefile          text
+package-lock.json text eol=lf -diff
+package.json      text eol=lf
+pnpm-lock.yaml    text eol=lf -diff
+yarn.lock         text -diff
+
+# Archives
+*.7z              binary
+*.gz              binary
+*.jar             binary
+*.rar             binary
+*.tar             binary
+*.zip             binary
+*.phar             binary
+
+# Images
+*.ai              binary
+*.bmp             binary
+*.eps             binary
+*.gif             binary
+*.gifv            binary
+*.ico             binary
+*.jng             binary
+*.jp2             binary
+*.jpg             binary
+*.jpeg            binary
+*.jpx             binary
+*.jxr             binary
+*.pdf             binary
+*.png             binary
+*.psb             binary
+*.psd             binary
+*.svg             text
+*.svgz            binary
+*.tif             binary
+*.tiff            binary
+*.wbmp            binary
+*.webp            binary
+
+# Fonts
+*.ttf             binary
+*.eot             binary
+*.otf             binary
+*.woff            binary
+*.woff2           binary
+
+
+# Exclude files from exporting
+.gitattributes    export-ignore
+.gitignore        export-ignore

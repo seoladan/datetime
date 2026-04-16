@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+opt="$1"
+docker=$(command -v docker >/dev/null 2>&1)
+shift
+
+case "$opt" in
+    --help)
+        echo "Helper to run project commands locally if possible, and if not to run them in the compose.dev.yaml 'php' container"
+        echo ""
+        echo "Options:"
+        echo "  --help        Show this help"
+        echo "  --build       Build the 'php' container from compose.dev.yaml"
+        echo "  --container   Run the command in the 'php' container even if it exists locally"
+        exit 0
+        ;;
+    --build)
+        ./build
+        ;;
+    --local)
+        run="$1"
+        shift
+
+        "$run" "$@"
+        ;;
+    --container)
+        if ! $docker
+        then
+            echo "Docker not installed!"
+            exit 1
+        fi
+
+        run="$1"
+        shift
+        docker compose --file compose.dev.yaml run --remove-orphans php "$run" "$@"
+        ;;
+    --*)
+        echo "Unknown option '$opt'"
+        exit 1
+        ;;
+    *)
+        run="$opt"
+
+        if command -v "$run" >/dev/null 2>&1
+        then
+            "$run" "$@"
+        else
+            if ! $docker
+            then
+                echo "Docker not installed!"
+                exit 1
+            fi
+
+            docker compose --file compose.dev.yaml run --remove-orphans php "$run" "$@"
+        fi
+        ;;
+esac
